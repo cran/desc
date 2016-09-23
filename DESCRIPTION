@@ -1,6 +1,6 @@
 Package: desc
 Title: Manipulate DESCRIPTION Files
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: c(
     person("Gábor", "Csárdi",, "csardi.gabor@gmail.com", role = c("aut", "cre")),
     person("Kirill", "Müller", role = c("aut")))
@@ -21,8 +21,8 @@ Collate: 'assertions.R' 'authors-at-r.R' 'classes.R' 'collate.R'
         'non-oo-api.R' 'read.R' 'str.R' 'syntax_checks.R' 'utils.R'
         'validate.R'
 NeedsCompilation: no
-Packaged: 2016-05-13 21:43:36 UTC; gaborcsardi
+Packaged: 2016-09-22 18:25:27 UTC; gaborcsardi
 Author: Gábor Csárdi [aut, cre],
   Kirill Müller [aut]
 Repository: CRAN
-Date/Publication: 2016-05-14 00:21:44
+Date/Publication: 2016-09-23 00:03:03

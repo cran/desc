@@ -69,7 +69,7 @@ format.DescriptionDependencyList <- function(x, ...) {
 
 format.DescriptionCollate <- function(x, ...) {
   paste0(
-    blue(x$key), ":\n",
+    blue(x$key), ":",
     deparse_collate(parse_collate(color_bad(x)))
   )
 }
@@ -92,7 +92,7 @@ format.DescriptionAuthorsAtR <- function(x, mode = c("file", "screen"),
 
   } else {
     paste0(
-      blue(x$key), ":\n",
+      blue(x$key), ":",
       sub("\n$", "", deparse_authors_at_r(xx))
     )
   }
