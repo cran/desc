@@ -4,23 +4,25 @@
 \alias{desc_get}
 \title{Get a field from a DESCRIPTION file}
 \usage{
-desc_get(keys, file = "DESCRIPTION")
+desc_get(keys, file = ".")
 }
 \arguments{
 \item{keys}{Character vector of fields to get.}
 
-\item{file}{DESCRIPTION file to use.}
+\item{file}{DESCRIPTION file to use. By default the DESCRIPTION
+file of the current package (i.e. the package the working directory
+is part of) is used.}
 }
 \value{
-List, values of the specified keys. Non-existing keys
-  return \code{NA}.
+Character vector, values of the specified keys.
+  Non-existing keys return \code{NA}.
 }
 \description{
 Get a field from a DESCRIPTION file
 }
 \seealso{
 Other simple queries: \code{\link{desc_del}},
-  \code{\link{desc_fields}}, \code{\link{desc_has_fields}},
-  \code{\link{desc_set}}
+  \code{\link{desc_fields}},
+  \code{\link{desc_get_or_fail}},
+  \code{\link{desc_has_fields}}, \code{\link{desc_set}}
 }
-

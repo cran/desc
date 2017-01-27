@@ -4,10 +4,12 @@
 \alias{desc_reorder_fields}
 \title{Reorder fields in a DESCRIPTION file}
 \usage{
-desc_reorder_fields(file = "DESCRIPTION")
+desc_reorder_fields(file = ".")
 }
 \arguments{
-\item{file}{DESCRIPTION file to use.}
+\item{file}{DESCRIPTION file to use. By default the DESCRIPTION
+file of the current package (i.e. the package the working directory
+is part of) is used.}
 }
 \description{
 Reorder the fields in DESCRIPTION in a standard way.
@@ -16,4 +18,3 @@ Reorder the fields in DESCRIPTION in a standard way.
 Other repair functions: \code{\link{desc_normalize}},
   \code{\link{desc_reformat_fields}}
 }
-

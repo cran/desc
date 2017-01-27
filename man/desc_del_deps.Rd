@@ -4,10 +4,12 @@
 \alias{desc_del_deps}
 \title{Remove all dependencies from DESCRIPTION}
 \usage{
-desc_del_deps(file = "DESCRIPTION", normalize = FALSE)
+desc_del_deps(file = ".", normalize = FALSE)
 }
 \arguments{
-\item{file}{DESCRIPTION file to use.}
+\item{file}{DESCRIPTION file to use. By default the DESCRIPTION
+file of the current package (i.e. the package the working directory
+is part of) is used.}
 
 \item{normalize}{Whether to normalize the write when writing back
 the result. See \code{\link{desc_normalize}}.}
@@ -17,7 +19,6 @@ Remove all dependencies from DESCRIPTION
 }
 \seealso{
 Other dependencies: \code{\link{desc_del_dep}},
-  \code{\link{desc_get_deps}}, \code{\link{desc_set_deps}},
-  \code{\link{desc_set_dep}}
+  \code{\link{desc_get_deps}}, \code{\link{desc_has_dep}},
+  \code{\link{desc_set_deps}}, \code{\link{desc_set_dep}}
 }
-

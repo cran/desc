@@ -14,7 +14,7 @@ generate_api <- function(member, self = TRUE, norm = TRUE,
   func <- description$public_methods[[member]]
 
   ## Arguments
-  xargs <- list(file = "DESCRIPTION")
+  xargs <- list(file = ".")
   if (self && norm) xargs <- c(xargs, list(normalize = FALSE))
   formals(res) <- c(formals(func), xargs)
 
@@ -87,13 +87,24 @@ desc_has_fields <- generate_api("has_fields", self = FALSE)
 #'
 #' @param keys Character vector of fields to get.
 #' @inheritParams desc_set
-#' @return List, values of the specified keys. Non-existing keys
-#'   return \code{NA}.
+#' @return Character vector, values of the specified keys.
+#'   Non-existing keys return \code{NA}.
 #'
 #' @family simple queries
 #' @export
 
 desc_get <- generate_api("get", self = FALSE)
+
+#' Get fields from a DESCRIPTION file, fail if not found
+#'
+#' @inheritParams desc_get
+#' @return Character vector, values of the specified keys.
+#'   Non-existing keys return \code{NA}.
+#'
+#' @family simple queries
+#' @export
+
+desc_get_or_fail <- generate_api("get_or_fail", self = FALSE)
 
 #' Set one or more fields in a DESCRIPTION file
 #'
@@ -105,7 +116,9 @@ desc_get <- generate_api("get", self = FALSE)
 #' and values as values to set.
 #'
 #' @param ... Values to set, see details below.
-#' @param file DESCRIPTION file to use.
+#' @param file DESCRIPTION file to use. By default the DESCRIPTION
+#'    file of the current package (i.e. the package the working directory
+#'    is part of) is used.
 #' @param normalize Whether to normalize the write when writing back
 #'   the result. See \code{\link{desc_normalize}}.
 #'
@@ -240,6 +253,18 @@ desc_del_dep <- generate_api("del_dep")
 #' @export
 
 desc_del_deps <- generate_api("del_deps")
+
+#' Check for a dependency
+#'
+#' @inheritParams desc_set
+#' @param package The package name.
+#' @param type A dependency type or \sQuote{any}.
+#' @return A logical scalar.
+#'
+#' @family dependencies
+#' @export
+
+desc_has_dep <- generate_api("has_dep", self = FALSE)
 
 ## -------------------------------------------------------------------
 
@@ -425,6 +450,178 @@ desc_add_me <- generate_api("add_me")
 #' @export
 
 desc_get_maintainer <- generate_api("get_maintainer", self = FALSE)
+
+## -------------------------------------------------------------------
+
+#' Query the URL field in DESCRIPTION
+#'
+#' @inheritParams desc_set
+#' @return A character vectors or URLs. A length zero vector is returned
+#'   if there is no URL field in the package.
+#'
+#' @export
+
+desc_get_urls <- generate_api("get_urls", self = FALSE)
+
+#' Set the URL field in DESCRIPTION
+#'
+#' The specified urls replace the current ones. The URL field is created
+#' if it does not exist currently.
+#'
+#' @param urls A character vector of urls to set.
+#' @inheritParams desc_set
+#'
+#' @export
+
+desc_set_urls <- generate_api("set_urls")
+
+#' Add URLs to the URL field in DESCRIPTION
+#'
+#' @param urls Character vector of URLs to add. Duplicate URLs are
+#'   eliminated.
+#' @inheritParams desc_set
+#'
+#' @export
+
+desc_add_urls <- generate_api("add_urls")
+
+#' Delete URLs from the URL field in DESCRIPTION
+#'
+#' All URLs matching the specified pattern are deleted.
+#'
+#' @param pattern Perl-compatible regular expression, all URLs
+#'   matching this expression will be deleted.
+#' @inheritParams desc_set
+#'
+#' @export
+
+desc_del_urls <- generate_api("del_urls")
+
+#' Remove all URLs from the URL field of DESCRIPTION
+#'
+#' @inheritParams desc_set
+#'
+#' @export
+
+desc_clear_urls <- generate_api("clear_urls")
+
+## -------------------------------------------------------------------
+
+#' List the locations in the Remotes field in DESCRIPTION
+#'
+#' @inheritParams desc_set
+#' @return A character vectors or remote locations. A length zero vector
+#'   is returned if there is no Remotes field in the package.
+#'
+#' @export
+
+desc_get_remotes <- generate_api("get_remotes", self = FALSE)
+
+#' Set the Remotes field in DESCRIPTION
+#'
+#' The specified locations replace the current ones. The Remotes field is
+#' created if it does not exist currently.
+#'
+#' @param remotes A character vector of remote locations to set.
+#' @inheritParams desc_set
+#'
+#' @export
+
+desc_set_remotes <- generate_api("set_remotes")
+
+#' Add locations in the Remotes field in DESCRIPTION
+#'
+#' @param remotes Character vector of remote locations to add.
+#'   Duplicate locations are eliminated. Note that existing locations
+#'   are not updated, so if you want to \emph{change} a remote location
+#'   of a package, you need to delete the old location first and then add
+#'   the new one.
+#' @inheritParams desc_set
+#'
+#' @export
+
+desc_add_remotes <- generate_api("add_remotes")
+
+#' Delete locations from the Remotes field in DESCRIPTION
+#'
+#' All locations matching the specified pattern are deleted.
+#'
+#' @param pattern Perl-compatible regular expression, all locations
+#'   matching this expression will be deleted.
+#' @inheritParams desc_set
+#'
+#' @export
+
+desc_del_remotes <- generate_api("del_remotes")
+
+#' Remove all locations from the Remotes field of DESCRIPTION
+#'
+#' This simply means that the field is deleted.
+#'
+#' @inheritParams desc_set
+#'
+#' @export
+
+desc_clear_remotes <- generate_api("clear_remotes")
+
+## -------------------------------------------------------------------
+
+#' Query the package version in DESCRIPTION
+#'
+#' If the file has no \code{Version} field, or it is an invalid
+#' version string, then it throws an error.
+#'
+#' @inheritParams desc_set
+#' @return A \code{\link[base]{package_version}} object.
+#'
+#' @export
+#' @family version numbers
+
+desc_get_version <- generate_api("get_version", self = FALSE)
+
+#' Set the package version in DESCRIPTION
+#'
+#' Both \code{$set_version()} and \code{$bump_version()} use dots to
+#' separate the version number components.
+#'
+#' @param version A string or a \code{\link[base]{package_version}}
+#'     object.
+#' @inheritParams desc_set
+#'
+#' @export
+#' @family version numbers
+
+desc_set_version <- generate_api("set_version")
+
+#' Increase the version number in DESCRIPTION
+#'
+#' The \code{which} parameter specifies which component to increase.
+#' It can be a string referring to a component: \sQuote{major},
+#' \sQuote{minor}, \sQuote{patch} or \sQuote{dev}, or an integer
+#' scalar, for the latter components are counted from one, and the
+#' beginning. I.e. component one is equivalent to \sQuote{major}.
+#'
+#' If a component is bumped, then the ones after it are zeroed out.
+#' Trailing zero components are omitted from the new version number,
+#' but if the old version number had at least two or three components, then
+#' the one will also have two or three.
+#'
+#' The bumping of the \sQuote{dev} version (the fourth component) is
+#' special: if the original version number had less than four components,
+#' and the \sQuote{dev} version is bumped, then it is set to \code{9000}
+#' instead of \code{1}. This is a convention often used by R developers,
+#' it was originally invented by Winston Chang.
+#'
+#' Both \code{$set_version()} and \code{$bump_version()} use dots to
+#' separate the version number components.
+#'
+#' @param which Which component to increase. See details below.
+#' @inheritParams desc_set
+#'
+#' @export
+#' @family version numbers
+
+desc_bump_version <- generate_api("bump_version")
 
 ## -------------------------------------------------------------------
 

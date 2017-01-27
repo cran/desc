@@ -5,11 +5,11 @@
 
 > Parse DESCRIPTION files
 
-[![Linux Build Status](https://travis-ci.org/metacran/desc.svg?branch=master)](https://travis-ci.org/metacran/desc)
-[![Windows Build status](https://ci.appveyor.com/api/projects/status/github/metacran/desc?svg=true)](https://ci.appveyor.com/project/gaborcsardi/desc)
+[![Linux Build Status](https://travis-ci.org/r-pkgs/desc.svg?branch=master)](https://travis-ci.org/r-pkgs/desc)
+[![Windows Build status](https://ci.appveyor.com/api/projects/status/github/r-pkgs/desc?svg=true)](https://ci.appveyor.com/project/gaborcsardi/desc)
 [![](http://www.r-pkg.org/badges/version/desc)](http://www.r-pkg.org/pkg/desc)
 [![CRAN RStudio mirror downloads](http://cranlogs.r-pkg.org/badges/desc)](http://www.r-pkg.org/pkg/desc)
-[![Coverage Status](https://img.shields.io/codecov/c/github/metacran/desc/master.svg)](https://codecov.io/github/metacran/desc?branch=master)
+[![Coverage Status](https://img.shields.io/codecov/c/github/r-pkgs/desc/master.svg)](https://codecov.io/github/r-pkgs/desc?branch=master)
 
 Parse, manipulate and reformat DESCRIPTION files. The package
 provides two APIs, one is object oriented, the other one is
@@ -33,7 +33,7 @@ procedural and manipulates the files *in place*.
 
 
 ```r
-source("https://raw.githubusercontent.com/MangoTheCat/remotes/master/install-github.R")$value("metacran/desc")
+source("https://install-github.me/r-pkgs/desc")
 ```
 
 ## The object oriented API
@@ -60,7 +60,7 @@ desc
 ```
 
 ```
-#> Package: description
+#> Package: desc
 #> Title: Manipulate DESCRIPTION Files
 #> Version: 1.0.0
 #> Author: Gábor Csárdi
@@ -69,8 +69,8 @@ desc
 #>     files.  It is intented for packages that create or manipulate other
 #>     packages.
 #> License: MIT + file LICENSE
-#> URL: https://github.com/metacran/description
-#> BugReports: https://github.com/metacran/description/issues
+#> URL: https://github.com/r-pkgs/desc
+#> BugReports: https://github.com/r-pkgs/desc/issues
 #> Imports:
 #>     R6
 #> Suggests:
@@ -188,8 +188,8 @@ desc
 #>     files.  It is intented for packages that create or manipulate other
 #>     packages.
 #> License: MIT + file LICENSE
-#> URL: https://github.com/metacran/description
-#> BugReports: https://github.com/metacran/description/issues
+#> URL: https://github.com/r-pkgs/desc
+#> BugReports: https://github.com/r-pkgs/desc/issues
 #> Imports:
 #>     R6,
 #>     mvtnorm
@@ -216,11 +216,13 @@ desc$get_collate()
 ```
 
 ```
-#>  [1] "assertions.R"    "authors-at-r.R"  "classes.R"      
-#>  [4] "collate.R"       "constants.R"     "deps.R"         
-#>  [7] "description.R"   "encoding.R"      "latex.R"        
-#> [10] "non-oo-api.R"    "read.R"          "str.R"          
-#> [13] "syntax_checks.R" "utils.R"         "validate.R"
+#>  [1] "assertions.R"       "authors-at-r.R"     "classes.R"         
+#>  [4] "collate.R"          "constants.R"        "deps.R"            
+#>  [7] "description.R"      "encoding.R"         "latex.R"           
+#> [10] "non-oo-api.R"       "package-archives.R" "read.R"            
+#> [13] "remotes.R"          "str.R"              "syntax_checks.R"   
+#> [16] "urls.R"             "utils.R"            "validate.R"        
+#> [19] "version.R"
 ```
 
 ### Authors
@@ -253,7 +255,7 @@ desc$get_authors()
 #> [3] "Manuel Eugster [aut, cph]"                           
 #> [4] "RStudio [cph]"                                       
 #> [5] "Bugs Bunny <bb@acme.com>"                            
-#> [6] "Gábor Csárdi <csardi.gabor@gmail.com> [ctb]"
+#> [6] "Gabor Csardi <csardi.gabor@gmail.com> [ctb]"
 ```
 
 ## The procedural API
@@ -273,7 +275,7 @@ desc_set_dep("newpackage", "Suggests")
 ```
 
 ```
-#> Package: description
+#> Package: desc
 #> Title: Manipulate DESCRIPTION Files
 #> Version: 1.0.0
 #> Author: Gábor Csárdi
@@ -282,8 +284,8 @@ desc_set_dep("newpackage", "Suggests")
 #>     files.  It is intented for packages that create or manipulate other
 #>     packages.
 #> License: MIT + file LICENSE
-#> URL: https://github.com/metacran/description
-#> BugReports: https://github.com/metacran/description/issues
+#> URL: https://github.com/r-pkgs/desc
+#> BugReports: https://github.com/r-pkgs/desc/issues
 #> Imports:
 #>     R6
 #> Suggests:

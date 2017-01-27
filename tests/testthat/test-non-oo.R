@@ -1,12 +1,6 @@
 
 context("Non OO API")
 
-temp_desc <- function(file = "D2") {
-  tmp <- tempfile()
-  file.copy(file, tmp)
-  tmp
-}
-
 test_that("desc_add_author", {
   d <- temp_desc()
   on.exit(unlink(d))
@@ -181,7 +175,7 @@ test_that("desc_reorder_fields", {
     desc_fields(file = d),
     c("Package", "Title", "Version", "Authors@R", "Description", 
       "License", "URL", "Depends", "Imports", "Suggests", "LinkingTo", 
-      "VignetteBuilder", "Encoding", "RoxygenNote", "Collate")
+      "VignetteBuilder", "Encoding", "Remotes", "RoxygenNote", "Collate")
   )
 })
 
@@ -236,4 +230,14 @@ test_that("desc_validate", {
     desc_validate(file = "D1"),
     "not implemented"
   )
+})
+
+test_that("can write back automatically found DESCRIPTION file", {
+  dir.create(tmp <- tempfile())
+  file.copy(file.path("files", "DESCRIPTION"), tmp)
+  withr::with_dir(
+    tmp,
+    desc_set_dep("somepackage", "Suggests")
+  )
+  expect_true("somepackage" %in% desc_get_deps(file = tmp)$package)
 })

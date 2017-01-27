@@ -4,12 +4,14 @@
 \alias{desc_set}
 \title{Set one or more fields in a DESCRIPTION file}
 \usage{
-desc_set(..., file = "DESCRIPTION", normalize = FALSE)
+desc_set(..., file = ".", normalize = FALSE)
 }
 \arguments{
 \item{...}{Values to set, see details below.}
 
-\item{file}{DESCRIPTION file to use.}
+\item{file}{DESCRIPTION file to use. By default the DESCRIPTION
+file of the current package (i.e. the package the working directory
+is part of) is used.}
 
 \item{normalize}{Whether to normalize the write when writing back
 the result. See \code{\link{desc_normalize}}.}
@@ -26,7 +28,7 @@ and values as values to set.
 }
 \seealso{
 Other simple queries: \code{\link{desc_del}},
-  \code{\link{desc_fields}}, \code{\link{desc_get}},
+  \code{\link{desc_fields}},
+  \code{\link{desc_get_or_fail}}, \code{\link{desc_get}},
   \code{\link{desc_has_fields}}
 }
-

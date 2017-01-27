@@ -1,4 +1,38 @@
 
+#' Read a DESCRIPTION file
+#'
+#' This is a convenience wrapper for \code{description$new()}.
+#' Very often you want to read an existing \code{DESCRIPTION}
+#' file, and to do this you can just supply the path to the file or its
+#' directory to \code{desc()}.
+#'
+#' @param cmd A command to create a description from scratch.
+#'   Currently only \code{"!new"} is implemented. If it does not start
+#'   with an exclamation mark, it will be interpreted as the \sQuote{file}
+#'   argument.
+#' @param file Name of the \code{DESCRIPTION} file to load. If all of
+#'   \sQuote{cmd}, \sQuote{file} and \sQuote{text} are \code{NULL} (the
+#'   default), then the \code{DESCRIPTION} file in the current working
+#'   directory is used. The file can also be an R package (source, or
+#'   binary), in which case the DESCRIPTION file is extracted from it, but
+#'   note that in this case \code{$write()} cannot write the file back in
+#'   the package archive.
+#' @param text A character scalar containing the full DESCRIPTION.
+#'   Character vectors are collapsed into a character scalar, with
+#'   newline as the separator.
+#' @param package If not NULL, then the name of an installed package
+#'     and the DESCRIPTION file of this package will be loaded.
+#'
+#' @export
+#' @examples
+#' desc(package = "desc")
+#' DESCRIPTION <- system.file("DESCRIPTION", package = "desc")
+#' desc(DESCRIPTION)
+
+desc <- function(cmd = NULL, file = NULL, text = NULL, package = NULL) {
+  description$new(cmd, file, text, package)
+}
+
 #' Read, write, update, validate DESCRIPTION files
 #'
 #' @section Constructors:
@@ -21,10 +55,16 @@
 #'     Currently only \code{"!new"} is implemented. If it does not start
 #'     with an exclamation mark, it will be interpreted as a \sQuote{file}
 #'     argument.}
-#'   \item{file:}{Name of the \code{DESCRIPTION} file to load. If all of
-#'     \sQuote{cmd}, \sQuote{file} and \sQuote{text} are \code{NULL} (the
-#'     default), then the \code{DESCRIPTION} file in the current working
-#'     directory is used.}
+#'   \item{file:}{Name of the \code{DESCRIPTION} file to load. If it is
+#'     a directory, then we assume that it is inside an R package and
+#'     conduct a search for the package root directory, i.e. the first
+#'     directory up the tree that contains a \code{DESCRIPTION} file.
+#'     If \sQuote{cmd}, \sQuote{file}, \sQuote{text} and \sQuote{package}
+#'     are all \code{NULL} (the default), then the search is started from
+#'     the working directory. The file can also be an R package (source, or
+#'     binary), in which case the DESCRIPTION file is extracted from it,
+#'     but note that in this case \code{$write()} cannot write the file
+#'     back in the package archive.}
 #'   \item{text:}{A character scalar containing the full DESCRIPTION.
 #'     Character vectors are collapsed into a character scalar, with
 #'     newline as the separator.}
@@ -55,8 +95,13 @@
 #' \preformatted{  x$set(foo = "bar")
 #'   x$del("foo")}
 #'
+#' \code{$get_or_fail} is similar to \code{$get}, but throws an error
+#' if a field does not exist, except of silently returning
+#' \code{NA_character}.
+#'
 #' The complete API reference:
 #' \preformatted{  description$get(keys)
+#'   description$get_or_fail(keys)
 #'   description$set(...)
 #'   description$fields()
 #'   description$has_fields(keys)
@@ -73,15 +118,29 @@
 #' field in a standard way and returns them (it does not change the
 #' object itself), \code{$print} is used to print it to the
 #' screen. The \code{$normalize} function normalizes each field (i.e.
-#' it changes the object).
+#' it changes the object). Normalization means reformatting the fields,
+#' via \code{$reformat_fields()} and also reordering them via
+#' \code{$reorder_fields()}. The format of the various fields is
+#' opinionated and you might like it or not. Note that \code{desc} only
+#' reformats fields that it updates, and only on demand, so if your
+#' formatting preferences differ, you can still manually edit 
+#' \code{DESCRIPTION} and \code{desc} will respect your edits.
 #'
-#' \preformatted{  description$str(by_field = FALSE)
+#' \preformatted{  description$str(by_field = FALSE, normalize = TRUE,
+#'     mode = c("file", "screen"))
 #'   description$normalize()
+#'   description$reformat_fields()
+#'   description$reorder_fields()
 #'   description$print()
 #' }
 #' \describe{
 #'   \item{by_field:}{Whether to return the normalized format
 #'     by field, or collapsed into a character scalar.}
+#'   \item{normalize:}{Whether to reorder and reformat the fields.}
+#'   \item{mode:}{\sQuote{file} mode formats the fields as they are
+#'     written to a file with the \code{write} method. \sQuote{screen}
+#'     mode adds extra markup to some fields, e.g. formats the
+#'     \code{Authors@R} field in a readable way.}
 #' }
 #'
 #' @section Writing it to file:
@@ -102,6 +161,52 @@
 #'   \item{normalize:}{Whether to reformat the fields in a standard way.}
 #' }
 #'
+#' @section Version numbers:
+#'
+#' \preformatted{  description$get_version()
+#'   description$set_version(version)
+#'   description$bump_version(which = c("patch", "minor", "major", "dev"))
+#' }
+#'
+#' \describe{
+#'   \item{version:}{A string or a \code{\link[base]{package_version}}
+#'     object.}
+#'   \item{which:}{Which component of the version number to increase.
+#'     See details just below.}
+#' }
+#'
+#' These functions are simple helpers to make it easier to query, set and
+#' increase the version number of a package.
+#'
+#' \code{$get_version()} returns the version number as a
+#' \code{\link[base]{package_version}} object. It throws an error if the
+#' package does not have a \sQuote{Version} field.
+#'
+#' \code{$set_version()} takes a string or a
+#' \code{\link[base]{package_version}} object and sets the \sQuote{Version}
+#' field to it.
+#'
+#' \code{$bump_version()} increases the version number. The \code{which}
+#' parameter specifies which component to increase.
+#' It can be a string referring to a component: \sQuote{major},
+#' \sQuote{minor}, \sQuote{patch} or \sQuote{dev}, or an integer
+#' scalar, for the latter components are counted from one, and the
+#' beginning. I.e. component one is equivalent to \sQuote{major}.
+#'
+#' If a component is bumped, then the ones after it are zeroed out.
+#' Trailing zero components are omitted from the new version number,
+#' but if the old version number had at least two or three components, then
+#' the one will also have two or three.
+#'
+#' The bumping of the \sQuote{dev} version (the fourth component) is
+#' special: if the original version number had less than four components,
+#' and the \sQuote{dev} version is bumped, then it is set to \code{9000}
+#' instead of \code{1}. This is a convention often used by R developers,
+#' it was originally invented by Winston Chang.
+#'
+#' Both \code{$set_version()} and \code{$bump_version()} use dots to
+#' separate the version number components.
+#'
 #' @section Dependencies:
 #' These functions handle the fields that define how the R package
 #' uses another R packages. See \code{\link{dep_types}} for the
@@ -117,6 +222,10 @@
 #' it sets all dependencies. The input is a data frame, with the same
 #' structure as the return value of \code{$get_deps}.
 #'
+#' The \code{$has_dep} method checks if a package is included in the
+#' dependencies. It returns a logical scalar. If \code{type} is not
+#' \sQuote{any}, then it has to match as well.
+#'
 #' The \code{$del_deps} method removes all declared dependencies.
 #'
 #' The \code{$set_dep} method adds or updates a single dependency. By
@@ -126,6 +235,7 @@
 #' \preformatted{  description$set_dep(package, type = dep_types, version = "\*")
 #'   description$set_deps(deps)
 #'   description$get_deps()
+#'   description$has_dep(package, type = c("any", dep_types))
 #'   description$del_dep(package, type = c("all", dep_types))
 #'   description$del_deps()
 #' }
@@ -218,6 +328,74 @@
 #' are used to select a subset of the authors, on which the operation
 #' is performed, similarly to \code{$del_author}.
 #'
+#' @section URLs:
+#'
+#' We provide helper functions for manipulating URLs in the \code{URL}
+#' field:
+#'
+#' \preformatted{  description$get_urls()
+#'   description$set_urls(urls)
+#'   description$add_urls(urls)
+#'   description$del_urls(pattern)
+#'   description$clear_urls()
+#' }
+#' \describe{
+#'   \item{urls:}{Character vector of URLs to set or add.}
+#'   \item{pattern:}{Perl compatible regular expression to specify the
+#'     URLs to be removed.}
+#' }
+#' \code{$get_urls()} returns all urls in a character vector. If no URL
+#' fields are present, a zero length vector is returned.
+#'
+#' \code{$set_urls()} sets the URL field to the URLs specified in the
+#' character vector argument.
+#'
+#' \code{$add_urls()} appends the specified URLs to the URL field. It
+#' creates the field if it does not exists. Duplicate URLs are removed.
+#'
+#' \code{$del_urls()} deletes the URLs that match the specified pattern.
+#'
+#' \code{$clear_urls()} deletes all URLs.
+#'
+#' @section Remotes:
+#'
+#' \code{devtools}, \code{remotes} and some other packages support the
+#' non-standard \code{Remotes} field in \code{DESCRIPTION}. This field
+#' can be used to specify locations of dependent packages: GitHub or
+#' BitBucket repositories, generic git repositories, etc. Please see the
+#' \sQuote{Package remotes} vignette in the \code{devtools} package.
+#'
+#' \code{desc} has helper functions for manipulating the \code{Remotes}
+#' field:
+#'
+#' \preformatted{  description$get_remotes()
+#'   description$get_remotes()
+#'   description$set_remotes(remotes)
+#'   description$add_remotes(remotes)
+#'   description$del_remotes(pattern)
+#'   description$clear_remotes()
+#' }
+#' \describe{
+#'   \item{remotes:}{Character vector of remote dependency locations to
+#'     set or add.}
+#'   \item{pattern:}{Perl compatible regular expression to specify the
+#'     remote dependency locations to remove.}
+#' }
+#' \code{$get_remotes()} returns all remotes in a character vector.
+#' If no URL fields are present, a zero length vector is returned.
+#'
+#' \code{$set_remotes()} sets the URL field to the Remotes specified in the
+#' character vector argument.
+#'
+#' \code{$add_remotes()} appends the specified remotes to the
+#' \code{Remotes} field. It creates the field if it does not exists.
+#' Duplicate remotes are removed.
+#'
+#' \code{$del_remotes()} deletes the remotes that match the specified
+#' pattern.
+#'
+#' \code{$clear_remotes()} deletes all remotes.
+#'
 #' @export
 #' @importFrom R6 R6Class
 #' @docType class
@@ -260,6 +438,9 @@ description <- R6Class("description",
     get = function(keys)
       idesc_get(self, private, keys),
 
+    get_or_fail = function(keys)
+      idesc_get_or_fail(self, private, keys),
+
     set = function(...)
       idesc_set(self, private, ...),
 
@@ -272,8 +453,9 @@ description <- R6Class("description",
     print = function()
       idesc_print(self, private),
 
-    str = function(by_field = FALSE, mode = c("file", "screen"))
-      idesc_str(self, private, by_field, mode),
+    str = function(by_field = FALSE, normalize = TRUE,
+      mode = c("file", "screen"))
+      idesc_str(self, private, by_field, normalize, mode),
 
     to_latex = function()
       idesc_to_latex(self, private),
@@ -288,6 +470,18 @@ description <- R6Class("description",
       idesc_reorder_fields(self, private),
 
     ## -----------------------------------------------------------------
+    ## Version numbers
+
+    get_version = function()
+      idesc_get_version(self, private),
+
+    set_version = function(version)
+      idesc_set_version(self, private, version),
+
+    bump_version = function(which)
+      idesc_bump_version(self, private, which),
+
+    ## -----------------------------------------------------------------
     ## Package dependencies
 
     set_dep = function(package, type = desc::dep_types, version = "*")
@@ -299,11 +493,14 @@ description <- R6Class("description",
     get_deps = function()
       idesc_get_deps(self, private),
 
-    del_dep = function(package, type = c("all", dep_types))
+    del_dep = function(package, type = c("all", desc::dep_types))
       idesc_del_dep(self, private, package, match.arg(type)),
 
     del_deps = function()
       idesc_del_deps(self, private),
+
+    has_dep = function(package, type = c("any", desc::dep_types))
+      idesc_has_dep(self, private, package, match.arg(type)),
 
     ## -----------------------------------------------------------------
     ## Collate fields
@@ -361,7 +558,43 @@ description <- R6Class("description",
       idesc_add_me(self, private, role, comment),
 
     get_maintainer = function()
-      idesc_get_maintainer(self, private)
+      idesc_get_maintainer(self, private),
+
+    ## -----------------------------------------------------------------
+    ## URL
+
+    get_urls = function()
+      idesc_get_urls(self, private),
+
+    set_urls = function(urls)
+      idesc_set_urls(self, private, urls),
+
+    add_urls = function(urls)
+      idesc_add_urls(self, private, urls),
+
+    del_urls = function(pattern)
+      idesc_del_urls(self, private, pattern),
+
+    clear_urls = function()
+      idesc_clear_urls(self, private),
+
+    ## -----------------------------------------------------------------
+    ## Remotes
+
+    get_remotes = function()
+      idesc_get_remotes(self, private),
+
+    set_remotes = function(remotes)
+      idesc_set_remotes(self, private, remotes),
+
+    add_remotes = function(remotes)
+      idesc_add_remotes(self, private, remotes),
+
+    del_remotes = function(pattern)
+      idesc_del_remotes(self, private, pattern),
+
+    clear_remotes = function()
+      idesc_clear_remotes(self, private)
   ),
 
   private = list(
@@ -370,7 +603,6 @@ description <- R6Class("description",
     notws = character()                   # entries without trailing ws
   )
 )
-
 
 idesc_create <- function(self, private, cmd, file, text, package) {
 
@@ -387,7 +619,7 @@ idesc_create <- function(self, private, cmd, file, text, package) {
 
   } else if (is.null(cmd) && is.null(file) && is.null(text) &&
              is.null(package)) {
-    idesc_create_file(self, private, "DESCRIPTION")
+    idesc_create_file(self, private, ".")
 
   } else if (!is.null(file)) {
     if (!is.null(text)) warning("text argument ignored")
@@ -406,6 +638,8 @@ idesc_create <- function(self, private, cmd, file, text, package) {
 }
 
 idesc_create_cmd <- function(self, private, cmd = c("new")) {
+  assert_that(is_constructor_cmd(cmd))
+
   if (cmd == "!new") {
     idesc_create_text(self, private, text =
 'Package: {{ Package }}
@@ -428,12 +662,28 @@ Encoding: UTF-8
 }
 
 idesc_create_file <- function(self, private, file) {
-  if (is_dir(file)) file <- file.path(file, "DESCRIPTION")
-  private$path <- file
-  idesc_create_text(self, private, readLines(file))
+  assert_that(is_path(file))
+
+  if (file.exists(file) && is_dir(file)) file <- find_description(file)
+  assert_that(is_existing_file(file))
+
+  if (is_package_archive(file)) {
+    file <- get_description_from_package(file)
+
+  } else {
+    private$path <- normalizePath(file)
+  }
+  
+  tryCatch(
+    lines <- readLines(file),
+    error = function(e) stop("Cannot read ", file, ": ", e$message)
+  )
+
+  idesc_create_text(self, private, lines)
 }
 
 idesc_create_text <- function(self, private, text) {
+  assert_that(is.character(text))
   con <- textConnection(text, local = TRUE)
   on.exit(close(con), add = TRUE)
   dcf <- read_dcf(con)
@@ -443,7 +693,11 @@ idesc_create_text <- function(self, private, text) {
 }
 
 idesc_create_package <- function(self, private, package) {
+  assert_that(is_string(package))
   path <- system.file(package = package, "DESCRIPTION")
+  if (path == "") {
+    stop("Cannot find DESCRIPTION for installed package ", package)
+  }
   idesc_create_file(self, private, path)
 }
 
@@ -451,6 +705,10 @@ idesc_create_package <- function(self, private, package) {
 
 idesc_write <- function(self, private, file) {
   if (is.null(file)) file <- private$path
+  if (is.null(file)) {
+    stop("Cannot write back DESCRIPTION. Note that it is not possible
+          to update DESCRIPTION files within package archives")
+  }
 
   mat <- idesc_as_matrix(private$data)
 
@@ -466,6 +724,7 @@ idesc_write <- function(self, private, file) {
   if (any(changed)) private$notws <- private$notws[! changed]
 
   postprocess_trailing_ws(tmp, names(private$notws))
+  if (file.exists(file) && is_dir(file)) file <- find_description(file)
   writeLines(readLines(tmp), file)
 
   invisible(self)
@@ -476,7 +735,7 @@ idesc_fields <- function(self, private) {
 }
 
 idesc_has_fields <- function(self, private, keys) {
-  keys <- as.character(keys)
+  assert_that(is.character(keys), has_no_na(keys))
   keys %in% self$fields()
 }
 
@@ -489,6 +748,7 @@ idesc_as_matrix <- function(data) {
 }
 
 idesc_get <- function(self, private, keys) {
+  assert_that(is.character(keys), has_no_na(keys))
   res <- lapply(private$data[keys], "[[", "value")
   res[vapply(res, is.null, logical(1))] <- NA_character_
   res <- unlist(res)
@@ -496,6 +756,21 @@ idesc_get <- function(self, private, keys) {
   res
 }
 
+idesc_get_or_fail <- function(self, private, keys) {
+  assert_that(is.character(keys), has_no_na(keys))
+  res <- self$get(keys)
+  if (any(is.na(res))) {
+    w <- is.na(res)
+    msg <- paste0(
+      "Could not find DESCRIPTION ",
+      if (sum(w) == 1) "field: " else "fields: ",
+      paste(sQuote(keys[w]), collapse = ", "),
+      "."
+    )
+    stop(msg, call. = FALSE)
+  }
+  res
+}
 
 ## ... are either
 ## - two unnamed arguments, key and value, or
@@ -527,6 +802,7 @@ idesc_set <- function(self, private, ...) {
 
 
 idesc_del <- function(self, private, keys) {
+  assert_that(is.character(keys), has_no_na(keys))
   private$data <- private$data[setdiff(names(private$data), keys)]
   invisible(self)
 }

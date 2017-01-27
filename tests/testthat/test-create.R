@@ -63,4 +63,24 @@ test_that("From installed package", {
 
   desc <- description$new(package = "utils")
   expect_match(desc$get("Author"), "Core Team")
+
+  expect_error(
+    description$new(package = "fgsdgsdhldsknfglkedsfgsdf"),
+    "Cannot find DESCRIPTION for installed package"
+  )
+})
+
+test_that("Package root is found", {
+
+  wd <- getwd()
+  on.exit(setwd(wd), add = TRUE)
+  setwd("files")
+
+  d1 <- description$new()
+
+  dir.create("subdir", showWarnings = FALSE)
+  setwd("subdir")
+  d2 <- description$new()
+
+  expect_equal(d1, d2)
 })

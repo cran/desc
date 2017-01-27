@@ -4,10 +4,12 @@
 \alias{desc_fields}
 \title{List all fields in a DESCRIPTION file}
 \usage{
-desc_fields(file = "DESCRIPTION")
+desc_fields(file = ".")
 }
 \arguments{
-\item{file}{DESCRIPTION file to use.}
+\item{file}{DESCRIPTION file to use. By default the DESCRIPTION
+file of the current package (i.e. the package the working directory
+is part of) is used.}
 }
 \value{
 Character vector of fields.
@@ -17,7 +19,6 @@ List all fields in a DESCRIPTION file
 }
 \seealso{
 Other simple queries: \code{\link{desc_del}},
-  \code{\link{desc_get}}, \code{\link{desc_has_fields}},
-  \code{\link{desc_set}}
+  \code{\link{desc_get_or_fail}}, \code{\link{desc_get}},
+  \code{\link{desc_has_fields}}, \code{\link{desc_set}}
 }
-

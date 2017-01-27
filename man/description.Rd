@@ -32,10 +32,16 @@ The complete API reference:
     Currently only \code{"!new"} is implemented. If it does not start
     with an exclamation mark, it will be interpreted as a \sQuote{file}
     argument.}
-  \item{file:}{Name of the \code{DESCRIPTION} file to load. If all of
-    \sQuote{cmd}, \sQuote{file} and \sQuote{text} are \code{NULL} (the
-    default), then the \code{DESCRIPTION} file in the current working
-    directory is used.}
+  \item{file:}{Name of the \code{DESCRIPTION} file to load. If it is
+    a directory, then we assume that it is inside an R package and
+    conduct a search for the package root directory, i.e. the first
+    directory up the tree that contains a \code{DESCRIPTION} file.
+    If \sQuote{cmd}, \sQuote{file}, \sQuote{text} and \sQuote{package}
+    are all \code{NULL} (the default), then the search is started from
+    the working directory. The file can also be an R package (source, or
+    binary), in which case the DESCRIPTION file is extracted from it,
+    but note that in this case \code{$write()} cannot write the file
+    back in the package archive.}
   \item{text:}{A character scalar containing the full DESCRIPTION.
     Character vectors are collapsed into a character scalar, with
     newline as the separator.}
@@ -68,8 +74,13 @@ The \code{$del} method removes the specified fields:
 \preformatted{  x$set(foo = "bar")
   x$del("foo")}
 
+\code{$get_or_fail} is similar to \code{$get}, but throws an error
+if a field does not exist, except of silently returning
+\code{NA_character}.
+
 The complete API reference:
 \preformatted{  description$get(keys)
+  description$get_or_fail(keys)
   description$set(...)
   description$fields()
   description$has_fields(keys)
@@ -88,15 +99,29 @@ Format DESCRIPTION in a standard way. \code{$str} formats each
 field in a standard way and returns them (it does not change the
 object itself), \code{$print} is used to print it to the
 screen. The \code{$normalize} function normalizes each field (i.e.
-it changes the object).
+it changes the object). Normalization means reformatting the fields,
+via \code{$reformat_fields()} and also reordering them via
+\code{$reorder_fields()}. The format of the various fields is
+opinionated and you might like it or not. Note that \code{desc} only
+reformats fields that it updates, and only on demand, so if your
+formatting preferences differ, you can still manually edit 
+\code{DESCRIPTION} and \code{desc} will respect your edits.
 
-\preformatted{  description$str(by_field = FALSE)
+\preformatted{  description$str(by_field = FALSE, normalize = TRUE,
+    mode = c("file", "screen"))
   description$normalize()
+  description$reformat_fields()
+  description$reorder_fields()
   description$print()
 }
 \describe{
   \item{by_field:}{Whether to return the normalized format
     by field, or collapsed into a character scalar.}
+  \item{normalize:}{Whether to reorder and reformat the fields.}
+  \item{mode:}{\sQuote{file} mode formats the fields as they are
+    written to a file with the \code{write} method. \sQuote{screen}
+    mode adds extra markup to some fields, e.g. formats the
+    \code{Authors@R} field in a readable way.}
 }
 }
 
@@ -120,6 +145,54 @@ The API:
 }
 }
 
+\section{Version numbers}{
+
+
+\preformatted{  description$get_version()
+  description$set_version(version)
+  description$bump_version(which = c("patch", "minor", "major", "dev"))
+}
+
+\describe{
+  \item{version:}{A string or a \code{\link[base]{package_version}}
+    object.}
+  \item{which:}{Which component of the version number to increase.
+    See details just below.}
+}
+
+These functions are simple helpers to make it easier to query, set and
+increase the version number of a package.
+
+\code{$get_version()} returns the version number as a
+\code{\link[base]{package_version}} object. It throws an error if the
+package does not have a \sQuote{Version} field.
+
+\code{$set_version()} takes a string or a
+\code{\link[base]{package_version}} object and sets the \sQuote{Version}
+field to it.
+
+\code{$bump_version()} increases the version number. The \code{which}
+parameter specifies which component to increase.
+It can be a string referring to a component: \sQuote{major},
+\sQuote{minor}, \sQuote{patch} or \sQuote{dev}, or an integer
+scalar, for the latter components are counted from one, and the
+beginning. I.e. component one is equivalent to \sQuote{major}.
+
+If a component is bumped, then the ones after it are zeroed out.
+Trailing zero components are omitted from the new version number,
+but if the old version number had at least two or three components, then
+the one will also have two or three.
+
+The bumping of the \sQuote{dev} version (the fourth component) is
+special: if the original version number had less than four components,
+and the \sQuote{dev} version is bumped, then it is set to \code{9000}
+instead of \code{1}. This is a convention often used by R developers,
+it was originally invented by Winston Chang.
+
+Both \code{$set_version()} and \code{$bump_version()} use dots to
+separate the version number components.
+}
+
 \section{Dependencies}{
 
 These functions handle the fields that define how the R package
@@ -136,6 +209,10 @@ The \code{$set_deps} method is the opposite of \code{$get_deps} and
 it sets all dependencies. The input is a data frame, with the same
 structure as the return value of \code{$get_deps}.
 
+The \code{$has_dep} method checks if a package is included in the
+dependencies. It returns a logical scalar. If \code{type} is not
+\sQuote{any}, then it has to match as well.
+
 The \code{$del_deps} method removes all declared dependencies.
 
 The \code{$set_dep} method adds or updates a single dependency. By
@@ -145,6 +222,7 @@ The API:
 \preformatted{  description$set_dep(package, type = dep_types, version = "\*")
   description$set_deps(deps)
   description$get_deps()
+  description$has_dep(package, type = c("any", dep_types))
   description$del_dep(package, type = c("all", dep_types))
   description$del_deps()
 }
@@ -241,6 +319,79 @@ be removed. The specifications can be (PCRE) regular expressions.
 are used to select a subset of the authors, on which the operation
 is performed, similarly to \code{$del_author}.
 }
+
+\section{URLs}{
+
+
+We provide helper functions for manipulating URLs in the \code{URL}
+field:
+
+\preformatted{  description$get_urls()
+  description$set_urls(urls)
+  description$add_urls(urls)
+  description$del_urls(pattern)
+  description$clear_urls()
+}
+\describe{
+  \item{urls:}{Character vector of URLs to set or add.}
+  \item{pattern:}{Perl compatible regular expression to specify the
+    URLs to be removed.}
+}
+\code{$get_urls()} returns all urls in a character vector. If no URL
+fields are present, a zero length vector is returned.
+
+\code{$set_urls()} sets the URL field to the URLs specified in the
+character vector argument.
+
+\code{$add_urls()} appends the specified URLs to the URL field. It
+creates the field if it does not exists. Duplicate URLs are removed.
+
+\code{$del_urls()} deletes the URLs that match the specified pattern.
+
+\code{$clear_urls()} deletes all URLs.
+}
+
+\section{Remotes}{
+
+
+\code{devtools}, \code{remotes} and some other packages support the
+non-standard \code{Remotes} field in \code{DESCRIPTION}. This field
+can be used to specify locations of dependent packages: GitHub or
+BitBucket repositories, generic git repositories, etc. Please see the
+\sQuote{Package remotes} vignette in the \code{devtools} package.
+
+\code{desc} has helper functions for manipulating the \code{Remotes}
+field:
+
+\preformatted{  description$get_remotes()
+  description$get_remotes()
+  description$set_remotes(remotes)
+  description$add_remotes(remotes)
+  description$del_remotes(pattern)
+  description$clear_remotes()
+}
+\describe{
+  \item{remotes:}{Character vector of remote dependency locations to
+    set or add.}
+  \item{pattern:}{Perl compatible regular expression to specify the
+    remote dependency locations to remove.}
+}
+\code{$get_remotes()} returns all remotes in a character vector.
+If no URL fields are present, a zero length vector is returned.
+
+\code{$set_remotes()} sets the URL field to the Remotes specified in the
+character vector argument.
+
+\code{$add_remotes()} appends the specified remotes to the
+\code{Remotes} field. It creates the field if it does not exists.
+Duplicate remotes are removed.
+
+\code{$del_remotes()} deletes the remotes that match the specified
+pattern.
+
+\code{$clear_remotes()} deletes all remotes.
+}
+
 \examples{
 ## Create a template
 desc <- description$new("!new")
@@ -260,4 +411,3 @@ desc2$get("VignetteBuilder")
 desc2
 }
 \keyword{datasets}
-

@@ -1,5 +1,6 @@
 
 idesc_set_dep <- function(self, private, package, type, version) {
+  assert_that(is_string(package), is_string(version))
   deps <- self$get_deps()
   has <- which(deps$package == package & deps$type == type)
 
@@ -21,7 +22,7 @@ idesc_set_dep <- function(self, private, package, type, version) {
 
 
 idesc_set_deps <- function(self, private, deps) {
-
+  assert_that(is_deps_df(deps))
   depdeps <- deparse_deps(deps)
   for (d in names(depdeps)) {
     if (! same_deps(depdeps[[d]], private$data[[d]]$value)) {
@@ -65,7 +66,7 @@ parse_deps <- function(type, deps) {
   deps <- lapply(deps, sub, pattern = "\\)$", replacement = "")
   res <- data.frame(
     stringsAsFactors = FALSE,
-    type = type,
+    type = if (length(deps)) type else character(),
     package = vapply(deps, "[", "", 1),
     version = vapply(deps, "[", "", 2)
   )
@@ -92,6 +93,7 @@ deparse_deps <- function(deps) {
 
 
 idesc_del_dep <- function(self, private, package, type) {
+  assert_that(is_string(package))
   deps <- self$get_deps()
 
   if (type == "all") {
@@ -112,4 +114,18 @@ idesc_del_dep <- function(self, private, package, type) {
 
 idesc_del_deps <- function(self, private) {
   self$del(dep_types)
+}
+
+
+idesc_has_dep <- function(self, private, package, type) {
+  assert_that(is_string(package))
+
+  deps <- self$get_deps()
+  if (type == "any") {
+    package %in% deps$package
+
+  } else {
+    package %in% deps$package &&
+      type %in% deps[match(package, deps$package), "type"]
+  }
 }
