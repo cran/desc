@@ -1,9 +1,9 @@
-12bc7c3a3a8482c8795c8594ba0f48cc *DESCRIPTION
+b120a98a326be283dee5416f745a47c7 *DESCRIPTION
 e4c81207cdbd596c9e35a231e630e872 *LICENSE
 4e254b99976e579a2587cecb34a7c229 *NAMESPACE
-f46a515b12511dfaa38bdfad0014ce3e *NEWS.md
+3056cc67c2902fb0032a72e11d495e3a *NEWS.md
 dc985b802fd20b6d0d31adaa5929cad5 *R/assertions.R
-e6c72ee0a97dacffb7949680f4432a10 *R/authors-at-r.R
+babff9502088d0d0062c6cccbe86c3eb *R/authors-at-r.R
 e13f26e1ec730f2f133ba45efc8c4a60 *R/classes.R
 39c3291961f1119871f8b3576aa06c4d *R/collate.R
 418508ee6da0653620bfbf67f4dfdbd5 *R/constants.R
@@ -13,7 +13,7 @@ e13f26e1ec730f2f133ba45efc8c4a60 *R/classes.R
 8b53a4c108f2cba9e3b2684b30b00df0 *R/latex.R
 4236fbc124e625d4d7e866783192696b *R/non-oo-api.R
 50a6134f5a03ab1295ee9d941495eea2 *R/package-archives.R
-1a06221e3e37a351c5f4791ebf31bd34 *R/read.R
+80205733fbcc2dd463b4679f3ae8d53c *R/read.R
 fad76c098683791fd87bee78ca016611 *R/remotes.R
 fe84270cb5fa350ff53046022c7a86b4 *R/str.R
 3167990c8ab9a520cf45e51f641eeaaf *R/syntax_checks.R
@@ -21,11 +21,11 @@ fe84270cb5fa350ff53046022c7a86b4 *R/str.R
 c2be1854c16b3ef1c62766a30aa30033 *R/utils.R
 7609c65315c4ccc461b4312b88e44e62 *R/validate.R
 9b3b1554e0ec41655574a6ba78f8a84a *R/version.R
-7d27bf0696bbdffe110d7d357b50f4e5 *inst/DESCRIPTION
+3ba0ce861688512cabe7cf512952e4cc *inst/DESCRIPTION
 dcee715ad05f22f9ea9015c7b9b4b0fc *inst/DESCRIPTION2
-f46a515b12511dfaa38bdfad0014ce3e *inst/NEWS.md
-2fbcd12fe515ee13e85f8d2909e6297b *inst/README.Rmd
-3f61fab7c3e01a3b6e8f3d8decc2a3f4 *inst/README.md
+3056cc67c2902fb0032a72e11d495e3a *inst/NEWS.md
+a21b37eda742851762f4920ed9d32153 *inst/README.Rmd
+0ea2e15de4e924d6e0caaa7c600df2d4 *inst/README.md
 dcb395e54a74f1a3e245107d3a7c462b *man/check_encoding.Rd
 7e5ed2e9239d833fb6dfdb79cd33b4b4 *man/check_field.Rd
 737f049bec71fdb4d033a71872687f62 *man/cran_ascii_fields.Rd
@@ -84,6 +84,7 @@ be96b5143b1d6266291d4f09583b9cee *tests/testthat/D1
 c7c30e1187575c55c4788e0a40d22196 *tests/testthat/D2
 0c5171c23afb3abfc6e7fb9810b44ff6 *tests/testthat/D3
 8e9f51d287512d940952ae45304d7019 *tests/testthat/D4
+2c9323b51bd0b848494819c3ee05d1e7 *tests/testthat/D5
 be96b5143b1d6266291d4f09583b9cee *tests/testthat/files/DESCRIPTION
 6dc77ce3ba4e9b5ecb2d5e53e7a129e2 *tests/testthat/fixtures/notpkg_1.0.tar.gz
 1261a114ea4b6fb4e2ab27228146c2ef *tests/testthat/fixtures/pkg_1.0.0.tar.gz
@@ -96,7 +97,7 @@ aef8f02891aa60e66955e23356e6e3a4 *tests/testthat/fixtures/xxx.gz
 681b5cdb593bafa9ce5f35dfae530be2 *tests/testthat/output/to_latex.tex
 b7d43ebade5d8e25d0273284f39eb7b8 *tests/testthat/test-archives.R
 e1731b58f55950189d5fe2226ee3311e *tests/testthat/test-authors.R
-7c8b2fadc8a4af937d5a1210d487a50c *tests/testthat/test-checks.R
+04d167df04fa31c835f34400d66dc7eb *tests/testthat/test-checks.R
 bb3600ff906f59f20c74ad662ba470c2 *tests/testthat/test-collate.R
 7f7769b4cdc0f3d15f849ee53f1e3d10 *tests/testthat/test-create.R
 b8839d6860a2035aec77b833504f5524 *tests/testthat/test-deps.R
@@ -105,7 +106,7 @@ b8839d6860a2035aec77b833504f5524 *tests/testthat/test-deps.R
 0484cad7c85958a2841b2cd9846b6a90 *tests/testthat/test-idempotent.R
 e9d7def0ebabc6180dadd4d6185f1882 *tests/testthat/test-non-oo.R
 b050b433642dc8e1353063a3d4e6bc4f *tests/testthat/test-queries.R
-192396ce9752e06b41997a23535b756f *tests/testthat/test-read.R
+23e640a4e35175373c2a876fa80067e6 *tests/testthat/test-read.R
 5336a948fb80ed8c3088b3e8c927e723 *tests/testthat/test-remotes.R
 09d6ed54453d8d642af2d07f0565a75f *tests/testthat/test-repair.R
 c2aee1218a3b5a642c96a95212fc31ee *tests/testthat/test-str.R
