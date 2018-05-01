@@ -12,9 +12,10 @@ file of the current package (i.e. the package the working directory
 is part of) is used.}
 }
 \description{
-Reformats and reorders fields in DESCRIPTION in a standard way.
+Re-formats and re-orders fields in DESCRIPTION in a standard way.
 }
 \seealso{
 Other repair functions: \code{\link{desc_reformat_fields}},
   \code{\link{desc_reorder_fields}}
 }
+\concept{repair functions}

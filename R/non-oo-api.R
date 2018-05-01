@@ -95,13 +95,23 @@ desc_has_fields <- generate_api("has_fields", self = FALSE)
 
 desc_get <- generate_api("get", self = FALSE)
 
-#' Get fields from a DESCRIPTION file, fail if not found
+#' Get a single field from a DESCRIPTION file, fail if not found
 #'
 #' @inheritParams desc_get
-#' @return Character vector, values of the specified keys.
-#'   Non-existing keys return \code{NA}.
+#' @param key The field to query.
+#' @param default Value to return if \code{key} is not found.
+#'   By default it throws an error.
+#' @param trim_ws Whether to trim leading and trailing whitespace
+#'   from the value. Defaults to \code{TRUE}.
+#' @return Character string, the value of \code{key}, or \code{default}
+#'   if \code{key} is not found and \code{default} is specified.
 #'
 #' @family simple queries
+#' @export
+
+desc_get_field <- generate_api("get_field", self = FALSE)
+
+#' @rdname desc_get_field
 #' @export
 
 desc_get_or_fail <- generate_api("get_or_fail", self = FALSE)
@@ -157,7 +167,7 @@ desc_to_latex <- generate_api("to_latex", self = FALSE)
 
 #' Normalize a DESCRIPTION file
 #'
-#' Reformats and reorders fields in DESCRIPTION in a standard way.
+#' Re-formats and re-orders fields in DESCRIPTION in a standard way.
 #'
 #' @inheritParams desc_set
 #' @family repair functions
@@ -625,4 +635,17 @@ desc_bump_version <- generate_api("bump_version")
 
 ## -------------------------------------------------------------------
 
+#' Query the built field in DESCRIPTION
+#'
+#' If the file has no \code{Built} field then it throws an error.
+#'
+#' @inheritParams desc_set
+#' @return A list with fields \sQuote{R}, \sQuote{Platform}, \sQuote{Date},
+#' \sQuote{OStype}. 
+#'
+#' @export
+#' @family built
+desc_get_built <- generate_api("get_built")
+
+## -------------------------------------------------------------------
 # nocov end
