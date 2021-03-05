@@ -16,14 +16,14 @@ test_that("get_deps", {
 
 
 test_that("set_dep", {
-  desc <- description$new("D1")
+  desc <- description$new(test_path("D1"))
 
   desc$set_dep("igraph")
 
   res <- data.frame(
     stringsAsFactors = FALSE,
     type = c("Imports", "Imports", "Suggests"),
-    package = c("R6", "igraph", "testthat"),
+    package = c("igraph", "R6", "testthat"),
     version = c("*", "*", "*")
   )
   expect_equal(desc$get_deps(), res)
@@ -33,8 +33,8 @@ test_that("set_dep", {
   res <- data.frame(
     stringsAsFactors = FALSE,
     type = c("Imports", "Imports", "Suggests"),
-    package = c("R6", "igraph", "testthat"),
-    version = c("*", ">= 1.0.0", "*")
+    package = c("igraph", "R6", "testthat"),
+    version = c(">= 1.0.0", "*", "*")
   )
 
   expect_equal(desc$get_deps(), res)
@@ -44,8 +44,8 @@ test_that("set_dep", {
   res <- data.frame(
     stringsAsFactors = FALSE,
     type = c("Imports", "Imports", "Suggests", "Depends"),
-    package = c("R6", "igraph", "testthat", "igraph"),
-    version = c("*", ">= 1.0.0", "*", ">= 1.0.0")
+    package = c("igraph", "R6", "testthat", "igraph"),
+    version = c(">= 1.0.0", "*", "*", ">= 1.0.0")
   )
 
   expect_equal(desc$get_deps(), res)
@@ -67,6 +67,39 @@ test_that("set_dep for the first dependency", {
     version = c("*")
   )
   expect_equal(desc$get_deps(), res)
+})
+
+test_that("set_dep preserves order", {
+  desc <- description$new("!new")
+
+  desc$set_deps(data.frame(
+    stringsAsFactors = FALSE,
+    type = "Imports",
+    package = c("covr", "testthat"),
+    version = "*"
+  ))
+  desc$set_dep("R6", "Imports")
+
+  expect_equal(
+    desc$get_deps()$package,
+    c("covr", "R6", "testthat")
+  )
+})
+test_that("set_dep inserts at end if not ordered", {
+  desc <- description$new("!new")
+
+  desc$set_deps(data.frame(
+    stringsAsFactors = FALSE,
+    type = "Imports",
+    package = c("testthat", "covr"),
+    version = "*"
+  ))
+  desc$set_dep("R6", "Imports")
+
+  expect_equal(
+    desc$get_deps()$package,
+    c("testthat", "covr", "R6")
+  )
 })
 
 test_that("del_dep", {
@@ -137,6 +170,14 @@ test_that("has_dep", {
   expect_error(desc$has_dep("testthat", "xxx"))
 })
 
+test_that("has_dep works when package listed twice", {
+  desc <- description$new("D2")
+  expect_true(desc$has_dep("Rcpp"))
+  expect_true(desc$has_dep("Rcpp", "Imports"))
+  expect_true(desc$has_dep("Rcpp", "LinkingTo"))
+  expect_false(desc$has_dep("Rcpp", "Suggests"))
+})
+
 test_that("issue #34 is fine (empty dep fields)", {
 
   empty_deps <- data.frame(
@@ -175,4 +216,22 @@ test_that("no dependencies at all", {
   expect_silent(desc$set_deps(deps))
   expect_silent(deps <- desc$get_deps())
   expect_equal(deps, empty_deps)
+})
+
+test_that("extra whitespace is removed from deps, but kept in raw data", {
+  D7 <- description$new(test_path("D7"))
+  deps <- D7$get_deps()
+  expect_equal(
+    deps$version[deps$package == "lme4"],
+    ">= 1.0.0"
+  )
+  expect_equal(
+    deps$version[deps$package == "survival"],
+    ">= 1.0.1"
+  )
+  expect_match(
+    D7$get("Suggests"),
+    "lme4\n        (>= 1.0.0), survival (>=\n        1.0.1)",
+    fixed = TRUE
+  )
 })

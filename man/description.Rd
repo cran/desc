@@ -4,9 +4,8 @@
 \name{description}
 \alias{description}
 \title{Read, write, update, validate DESCRIPTION files}
-\format{An R6 class.}
-\usage{
-description
+\format{
+An R6 class.
 }
 \description{
 Read, write, update, validate DESCRIPTION files
@@ -281,6 +280,7 @@ The API:
   description$set_authors(authors)
   description$get_author(role)
   description$get_maintainer()
+  description$coerce_authors_at_r()
 }
 \describe{
    \item{authors:}{A \code{person} object, a list of authors.}
@@ -296,17 +296,28 @@ the specified role.
 with \code{Authors@R} fields and with traditional \code{Maintainer}
 fields as well.
 
+\code{$coerce_authors_at_r} converts an \code{Author} field to one with
+a \code{person} object. This coercion may be necessary for other
+functions such as \code{$get_authors}.
+
 \preformatted{  description$add_author(given = NULL, family = NULL, email = NULL,
-    role = NULL, comment = NULL)
-  description$add_me(role = "ctb", comment = NULL)
+    role = NULL, comment = NULL, orcid = NULL)
+  description$add_me(role = "ctb", comment = NULL, orcid = NULL)
+  description$add_author_gh(username, role = "ctb", comment = NULL, orcid = NULL)
 }
 Add a new author. The arguments correspond to the arguments of the
 \code{\link[utils]{person}} function. \code{add_me} is a convenience
 function, it adds the current user as an author, and it needs the
-\code{whoami} package to be installed.
+\code{whoami} package to be installed. It'll add your ORCID ID
+if you provide it as argument or save it as \code{ORCID_ID} environment
+variable in .Renviron.
+The full name is parsed by \code{add_me} and \code{add_author_gh} using
+\code{as.person} and collapsing the given name and the family name
+in order to e.g. have the first and middle names together as given
+name. This approach might be limited to some full name structures.
 
 \preformatted{  description$del_author(given = NULL, family = NULL, email = NULL,
-    role = NULL, comment = NULL)
+    role = NULL, comment = NULL, orcid = NULL)
 }
 Remove an author, or multiple authors. The author(s) to be removed
 can be specified via any field(s). All authors matching all
@@ -315,11 +326,13 @@ is supplied, then all authors whole given name matches \code{Joe} will
 be removed. The specifications can be (PCRE) regular expressions.
 
 \preformatted{  description$add_role(role, given = NULL, family = NULL, email = NULL,
-    comment = NULL)
+    comment = NULL, orcid = NULL)
+    description$add_orcid(orcid, given = NULL, family = NULL, email = NULL,
+    comment = NULL, role = NULL)
   description$del_role(role, given = NULL, family = NULL, email = NULL,
-     comment = NULL)
+     comment = NULL, orcid = NULL)
   description$change_maintainer(given = NULL, family = NULL,
-    email = NULL, comment = NULL)
+    email = NULL, comment = NULL, orcid = NULL)
 }
 \code{role} is the role to add or delete. The other arguments
 are used to select a subset of the authors, on which the operation
@@ -441,4 +454,3 @@ desc2$set(VignetteBuilder = "knitr")
 desc2$get("VignetteBuilder")
 desc2
 }
-\keyword{datasets}

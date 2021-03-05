@@ -168,6 +168,7 @@ desc_to_latex <- generate_api("to_latex", self = FALSE)
 #' Normalize a DESCRIPTION file
 #'
 #' Re-formats and re-orders fields in DESCRIPTION in a standard way.
+#' Reorders the packages alphabetically.
 #'
 #' @inheritParams desc_set
 #' @family repair functions
@@ -369,6 +370,7 @@ desc_set_authors <- generate_api("set_authors")
 #' @param email Email address.
 #' @param role Role.
 #' @param comment Comment.
+#' @param orcid ORCID.
 #' @inheritParams desc_set
 #'
 #' @family Authors@R
@@ -376,23 +378,45 @@ desc_set_authors <- generate_api("set_authors")
 
 desc_add_author <- generate_api("add_author")
 
-#' Add a role to one or more authors in Authors@R, in DESCRIPTION
+#' @title Add a role to one or more authors in Authors@R, in DESCRIPTION
 #'
-#' The author(s) can be specified by a combination of the \code{given},
-#' \code{family}, \code{email} and \code{comment} fields. If multiple
-#' filters are specified, then all must match to identify the author(s).
+#' @description The author(s) can be specified by a combination of the \code{given},
+#' \code{family}, \code{email}, \code{comment} and \code{orcid} fields.
+#' If multiple filters are specified, then all must match
+#' to identify the author(s).
 #'
 #' @param role Role to add.
 #' @param given Given name to filter on. Regular expression.
 #' @param family Family name to filter on. Regular expression.
 #' @param email Email address to filter on. Regular expression.
 #' @param comment Comment field to filter on. Regular expression.
+#' @param orcid ORCID field to filter on.
 #' @inheritParams desc_set
 #'
 #' @family Authors@R
 #' @export
 
 desc_add_role <- generate_api("add_role")
+
+#' @title Add an ORCID to one or more authors in Authors@R, in DESCRIPTION
+#'
+#' @description The author(s) can be specified by a combination of the \code{given},
+#' \code{family}, \code{email}, \code{comment} and \code{role} fields.
+#' If multiple filters are specified, then all must match
+#' to identify the author(s).
+#'
+#' @param orcid orcid to add.
+#' @param given Given name to filter on. Regular expression.
+#' @param family Family name to filter on. Regular expression.
+#' @param email Email address to filter on. Regular expression.
+#' @param comment Comment field to filter on. Regular expression.
+#' @param role Role field to filter on.
+#' @inheritParams desc_set
+#'
+#' @family Authors@R
+#' @export
+
+desc_add_orcid <- generate_api("add_orcid")
 
 #' Remove one or more authors from DESCRIPTION.
 #'
@@ -410,11 +434,9 @@ desc_add_role <- generate_api("add_role")
 
 desc_del_author <- generate_api("del_author")
 
-#' Delete a role of an author, in DESCRIPTION
+#' @title Delete a role of an author, in DESCRIPTION
 #'
-#' The author(s) can be specified by a combination of the \code{given},
-#' \code{family}, \code{email} and \code{comment} fields. If multiple
-#' filters are specified, then all must match to identify the author(s).
+#' @inherit desc_add_role description
 #'
 #' @param role Role to remove.
 #' @inheritParams desc_add_role
@@ -443,12 +465,48 @@ desc_change_maintainer <- generate_api("change_maintainer")
 #'
 #' @param role Role to set for the user, defaults to contributor.
 #' @param comment Comment, empty by default.
+#' @param orcid ORCID, empty by default.
 #' @inheritParams desc_set
+#'
+#' @details
+#' \code{desc_add_me} is a convenience function, it adds the
+#'  current user as an author, and it needs the
+#' \code{whoami} package to be installed. It'll add your ORCID ID
+#' if you provide it as argument or save it as \code{ORCID_ID} environment
+#' variable in .Renviron.
+#' The full name is parsed using
+#' \code{as.person} and collapsing the given name and the family name
+#' in order to e.g. have the first and middle names together as given
+#' name. This approach might be limited to some full name structures.
 #'
 #' @family Authors@R
 #' @export
 
 desc_add_me <- generate_api("add_me")
+
+#' Add a GitHub user as an author to DESCRIPTION
+#'
+#' Uses the Authors@R field.
+#'
+#' @param username GitHub username of the GitHub user
+#' @param role Role to set for the user, defaults to contributor.
+#' @param comment Comment, empty by default.
+#' @param orcid ORCID, empty by default.
+#' @inheritParams desc_set
+#'
+#' @details
+#' \code{desc_add_author_gh} is a convenience function, it adds the
+#'  GitHub user as an author, and it needs the
+#' \code{gh} package to be installed.
+#' The full name is parsed using
+#' \code{as.person} and collapsing the given name and the family name
+#' in order to e.g. have the first and middle names together as given
+#' name. This approach might be limited to some full name structures.
+#'
+#' @family Authors@R
+#' @export
+
+desc_add_author_gh <- generate_api("add_author_gh")
 
 #' Query the package maintainer in DESCRIPTION
 #'
@@ -460,6 +518,18 @@ desc_add_me <- generate_api("add_me")
 #' @export
 
 desc_get_maintainer <- generate_api("get_maintainer", self = FALSE)
+
+#' Coerce Author Field to Authors@R
+#'
+#' Convert an \sQuote{Author} to a \sQuote{Authors@R} field, which is necessary
+#' for other functions such as getting authors.
+#'
+#' @inheritParams desc_set
+#'
+#' @export
+#' @family Authors@R
+desc_coerce_authors_at_r <- generate_api("coerce_authors_at_r")
+
 
 ## -------------------------------------------------------------------
 
@@ -641,7 +711,7 @@ desc_bump_version <- generate_api("bump_version")
 #'
 #' @inheritParams desc_set
 #' @return A list with fields \sQuote{R}, \sQuote{Platform}, \sQuote{Date},
-#' \sQuote{OStype}. 
+#' \sQuote{OStype}.
 #'
 #' @export
 #' @family built

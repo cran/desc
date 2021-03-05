@@ -4,7 +4,7 @@
 idesc_str <- function(self, private, by_field, normalize = TRUE,
                       mode = c("file", "screen")) {
 
-  assert_that(is_flag(by_field))
+  stopifnot(is_flag(by_field))
   mode <- match.arg(mode)
   cols <- names(private$data)
   if (normalize) cols <- field_order(cols)
@@ -68,7 +68,7 @@ format.DescriptionDependencyList <- function(x, ...) {
     blue(x$key), ":\n",
     paste0(
       "    ",
-      str_trim(strsplit(color_bad(x), ",", fixed = TRUE)[[1]]),
+      sort(str_trim(strsplit(color_bad(x), ",", fixed = TRUE)[[1]])),
       collapse = ",\n"
     )
   )
@@ -139,7 +139,9 @@ idesc_normalize <- function(self, private) {
 #' @importFrom crayon strip_style
 
 idesc_reformat_fields <- function(self, private) {
-  norm_fields <- strip_style(idesc_str(self, private, by_field = TRUE))
+  old <- options(crayon.enabled = FALSE)
+  on.exit(options(old), add = TRUE)
+  norm_fields <- idesc_str(self, private, by_field = TRUE)
   for (f in names(norm_fields)) {
     private$data[[f]]$value <-
       sub(paste0(f, ":[ ]?"), "", norm_fields[[f]])

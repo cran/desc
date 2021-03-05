@@ -11,5 +11,11 @@ test_that("Test expected LaTeX output", {
            URL = "http://somewhere.io, http://somewhereel.se",
            BugReports = "http://somewhere.io/trac")
 
-  expect_output_file(print(desc$to_latex()), "output/to_latex.tex", update = FALSE)
+  new <- capture_output(print(desc$to_latex()))
+  old <- readLines(test_path("output/to_latex.tex"), encoding = "UTF-8")
+
+  new1 <- strsplit(new, "\n")[[1]]
+  old1 <- enc2native(old)
+
+  expect_equal(new1, old1)
 })

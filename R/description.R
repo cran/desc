@@ -290,6 +290,7 @@ desc <- function(cmd = NULL, file = NULL, text = NULL, package = NULL) {
 #'   description$set_authors(authors)
 #'   description$get_author(role)
 #'   description$get_maintainer()
+#'   description$coerce_authors_at_r()
 #' }
 #' \describe{
 #'    \item{authors:}{A \code{person} object, a list of authors.}
@@ -305,17 +306,28 @@ desc <- function(cmd = NULL, file = NULL, text = NULL, package = NULL) {
 #' with \code{Authors@R} fields and with traditional \code{Maintainer}
 #' fields as well.
 #'
+#' \code{$coerce_authors_at_r} converts an \code{Author} field to one with
+#' a \code{person} object. This coercion may be necessary for other
+#' functions such as \code{$get_authors}.
+#'
 #' \preformatted{  description$add_author(given = NULL, family = NULL, email = NULL,
-#'     role = NULL, comment = NULL)
-#'   description$add_me(role = "ctb", comment = NULL)
+#'     role = NULL, comment = NULL, orcid = NULL)
+#'   description$add_me(role = "ctb", comment = NULL, orcid = NULL)
+#'   description$add_author_gh(username, role = "ctb", comment = NULL, orcid = NULL)
 #' }
 #' Add a new author. The arguments correspond to the arguments of the
 #' \code{\link[utils]{person}} function. \code{add_me} is a convenience
 #' function, it adds the current user as an author, and it needs the
-#' \code{whoami} package to be installed.
+#' \code{whoami} package to be installed. It'll add your ORCID ID
+#' if you provide it as argument or save it as \code{ORCID_ID} environment
+#' variable in .Renviron.
+#' The full name is parsed by \code{add_me} and \code{add_author_gh} using
+#' \code{as.person} and collapsing the given name and the family name
+#' in order to e.g. have the first and middle names together as given
+#' name. This approach might be limited to some full name structures.
 #'
 #' \preformatted{  description$del_author(given = NULL, family = NULL, email = NULL,
-#'     role = NULL, comment = NULL)
+#'     role = NULL, comment = NULL, orcid = NULL)
 #' }
 #' Remove an author, or multiple authors. The author(s) to be removed
 #' can be specified via any field(s). All authors matching all
@@ -324,11 +336,13 @@ desc <- function(cmd = NULL, file = NULL, text = NULL, package = NULL) {
 #' be removed. The specifications can be (PCRE) regular expressions.
 #'
 #' \preformatted{  description$add_role(role, given = NULL, family = NULL, email = NULL,
-#'     comment = NULL)
+#'     comment = NULL, orcid = NULL)
+#'     description$add_orcid(orcid, given = NULL, family = NULL, email = NULL,
+#'     comment = NULL, role = NULL)
 #'   description$del_role(role, given = NULL, family = NULL, email = NULL,
-#'      comment = NULL)
+#'      comment = NULL, orcid = NULL)
 #'   description$change_maintainer(given = NULL, family = NULL,
-#'     email = NULL, comment = NULL)
+#'     email = NULL, comment = NULL, orcid = NULL)
 #' }
 #' \code{role} is the role to add or delete. The other arguments
 #' are used to select a subset of the authors, on which the operation
@@ -566,30 +580,49 @@ description <- R6Class("description",
       idesc_set_authors(self, private, authors),
 
     add_author = function(given = NULL, family = NULL, email = NULL,
-                          role = NULL, comment = NULL)
-      idesc_add_author(self, private, given, family, email, role, comment),
+                          role = NULL, comment = NULL, orcid = NULL)
+      idesc_add_author(self, private, given, family, email, role, comment,
+                       orcid),
 
     add_role = function(role, given = NULL, family = NULL, email = NULL,
-                        comment = NULL)
-      idesc_add_role(self, private, role, given, family, email, comment),
+                        comment = NULL, orcid = NULL)
+      idesc_add_role(self, private, role, given, family, email, comment,
+                     orcid),
+
+    add_orcid = function(orcid, given = NULL, family = NULL, email = NULL,
+                        comment = NULL, role = NULL)
+      idesc_add_orcid(self, private, role = role, given = given, family = family,
+                     email = email, comment = comment,
+                     orcid = orcid),
 
     del_author = function(given = NULL, family = NULL, email = NULL,
-                          role = NULL, comment = NULL)
-      idesc_del_author(self, private, given, family, email, role, comment),
+                          role = NULL, comment = NULL, orcid = NULL)
+      idesc_del_author(self, private, given, family, email, role, comment,
+                       orcid),
 
     del_role = function(role, given = NULL, family = NULL, email = NULL,
-                        comment = NULL)
-      idesc_del_role(self, private, role, given, family, email, comment),
+                        comment = NULL, orcid = NULL)
+      idesc_del_role(self, private, role, given, family, email, comment,
+                     orcid),
 
     change_maintainer = function(given = NULL, family = NULL, email = NULL,
-                                 comment = NULL)
-      idesc_change_maintainer(self, private, given, family, email, comment),
+                                 comment = NULL, orcid = NULL)
+      idesc_change_maintainer(self, private, given, family, email, comment,
+                              orcid),
 
-    add_me = function(role = "ctb", comment = NULL)
-      idesc_add_me(self, private, role, comment),
+    add_me = function(role = "ctb", comment = NULL, orcid = NULL)
+      idesc_add_me(self, private, role, comment, orcid),
+
+    add_author_gh = function(username, role = "ctb", comment = NULL, orcid = NULL)
+      idesc_add_author_gh(self, private, role = role,
+                   username = username,
+                   comment = comment, orcid = orcid),
 
     get_maintainer = function()
       idesc_get_maintainer(self, private),
+
+    coerce_authors_at_r = function()
+      idesc_coerce_authors_at_r(self, private),
 
     ## -----------------------------------------------------------------
     ## URL
@@ -675,14 +708,14 @@ idesc_create <- function(self, private, cmd, file, text, package) {
 }
 
 idesc_create_cmd <- function(self, private, cmd = c("new")) {
-  assert_that(is_constructor_cmd(cmd))
+  stopifnot(is_constructor_cmd(cmd))
 
   if (cmd == "!new") {
-    idesc_create_text(self, private, text =
+    txt <-
 'Package: {{ Package }}
 Title: {{ Title }}
 Version: 1.0.0
-Authors@R: 
+Authors@R:
     c(person(given = "Jo", family = "Doe", email = "jodoe@dom.ain",
       role = c("aut", "cre")))
 Maintainer: {{ Maintainer }}
@@ -692,17 +725,19 @@ LazyData: true
 URL: {{ URL }}
 BugReports: {{ BugReports }}
 Encoding: UTF-8
-')
+'
+    txt <- sub("Authors@R:", "Authors@R: ", txt)
+    idesc_create_text(self, private, text = txt)
   }
 
   invisible(self)
 }
 
 idesc_create_file <- function(self, private, file) {
-  assert_that(is_path(file))
+  stopifnot(is_path(file))
 
   if (file.exists(file) && is_dir(file)) file <- find_description(file)
-  assert_that(is_existing_file(file))
+  stopifnot(is_existing_file(file))
 
   if (is_package_archive(file)) {
     file <- get_description_from_package(file)
@@ -720,8 +755,8 @@ idesc_create_file <- function(self, private, file) {
 }
 
 idesc_create_text <- function(self, private, text) {
-  assert_that(is.character(text))
-  con <- textConnection(text, local = TRUE)
+  stopifnot(is.character(text))
+  con <- textConnection(text, local = TRUE, encoding = "bytes")
   on.exit(close(con), add = TRUE)
   dcf <- read_dcf(con)
   private$notws <- dcf$notws
@@ -730,7 +765,7 @@ idesc_create_text <- function(self, private, text) {
 }
 
 idesc_create_package <- function(self, private, package) {
-  assert_that(is_string(package))
+  stopifnot(is_string(package))
   path <- system.file(package = package, "DESCRIPTION")
   if (path == "") {
     stop("Cannot find DESCRIPTION for installed package ", package)
@@ -779,7 +814,7 @@ idesc_fields <- function(self, private) {
 }
 
 idesc_has_fields <- function(self, private, keys) {
-  assert_that(is.character(keys), has_no_na(keys))
+  stopifnot(is.character(keys), has_no_na(keys))
   keys %in% self$fields()
 }
 
@@ -792,7 +827,7 @@ idesc_as_matrix <- function(data) {
 }
 
 idesc_get <- function(self, private, keys) {
-  assert_that(is.character(keys), has_no_na(keys))
+  stopifnot(is.character(keys), has_no_na(keys))
   res <- lapply(private$data[keys], "[[", "value")
   res[vapply(res, is.null, logical(1))] <- NA_character_
   res <- as.character(unlist(res))
@@ -801,15 +836,15 @@ idesc_get <- function(self, private, keys) {
 }
 
 idesc_get_field <- function(self, private, key, default, trim_ws) {
-  assert_that(is_string(key))
-  assert_that(is_flag(trim_ws))
+  stopifnot(is_string(key))
+  stopifnot(is_flag(trim_ws))
   val <- private$data[[key]]$value
   if (trim_ws && !is.null(val)) val <- str_trim(val)
   val %||% default
 }
 
 idesc_get_or_fail <- function(self, private, keys) {
-  assert_that(is.character(keys), has_no_na(keys))
+  stopifnot(is.character(keys), has_no_na(keys))
   res <- self$get(keys)
   if (any(is.na(res))) {
     w <- is.na(res)
@@ -854,7 +889,7 @@ idesc_set <- function(self, private, ...) {
 
 
 idesc_del <- function(self, private, keys) {
-  assert_that(is.character(keys), has_no_na(keys))
+  stopifnot(is.character(keys), has_no_na(keys))
   private$data <- private$data[setdiff(names(private$data), keys)]
   invisible(self)
 }

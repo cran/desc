@@ -15,7 +15,6 @@ is_ascii <- function(x) {
   )
 }
 
-
 ## This is from tools/R/QC.R
 ## We do not calculate code coverage for this, as
 ## it is run at install time
@@ -103,14 +102,49 @@ postprocess_trailing_ws <- function(file, notws) {
   writeLines(lines, file)
 }
 
-#' @importFrom rprojroot find_root is_r_package
+# We both import and qualify, this is not a mistake.
+# We import for work around a jetpack revdep failure.
+# We qualify to make desc work in (patched) pkgload
+
+#' @importFrom rprojroot find_root
 
 find_description <- function(dir) {
-  pkg_root <- find_root(is_r_package, dir)
+  pkg_root <- rprojroot::find_root(rprojroot::is_r_package, dir)
   file.path(pkg_root, "DESCRIPTION")
 }
 
 mark_continuation_lines <- function(x) {
   x <- gsub("\n[ \t]*\n", "\n .\n ", x, perl = TRUE, useBytes = TRUE)
   gsub("\n \\.([^\n])", "\n  .\\1", x, perl = TRUE, useBytes = TRUE)
+}
+
+parse_full_name <- function(x) {
+  given <- paste(as.person(x)$given,
+                  collapse = " ")
+  family <- paste(as.person(x)$family,
+                   collapse = " ")
+
+  return(list(given = given,
+              family = family))
+}
+
+# deparse() converts strings to the native encoding, and we want to
+# keep everything in UTF-8. Apparently, if you mark the input string
+# as native, then it will not have a chance to do any conversion.
+
+fixed_deparse1 <- function(x, ...) {
+  # Need to do this, because console and code input might be in
+  # the native encoding
+  x <- enc2utf8(x)
+  Encoding(x) <- "unknown"
+  out <- paste(deparse(x, width.cutoff = 500L, ...), collapse = " ")
+  Encoding(out) <- "UTF-8"
+  out
+}
+
+desc_message <- function(...) {
+  msg <- simpleMessage(paste0(..., "\n"), sys.call())
+  class(msg) <- c("descMessage", class(msg))
+  message(msg)
+
 }

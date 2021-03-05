@@ -6,8 +6,9 @@ URL: https://github.com/klutometis/roxygen
 Version: 4.1.1.9000
 License: GPL (>= 2)
 Authors@R: c(
-    person("Hadley", "Wickham",, "h.wickham@gmail.com", c("aut", "cre", "cph")),
+    person("Hadley", "Wickham",, "h.wickham@gmail.com", c("aut", "cre", "cph"), comment = c(ORCID = "0000-0003-4757-117X")),
     person("Peter", "Danenberg",, "pcd@roxygen.org", c("aut", "cph")),
+    person("Peter", "Doe",, "pcd@roxygen.org", c("aut", "cph")),
     person("Manuel", "Eugster", role = c("aut", "cph")),
     person("RStudio", role = "cph")
     )
@@ -60,3 +61,7 @@ Collate:
     'util-locale.R'
     'utils.R'
 RoxygenNote: 4.1.1.9000
+Encoding: UTF-8
+Remotes: foo/digest, svn::https://github.com/hadley/stringr,
+    local::/pkgs/testthat
+
