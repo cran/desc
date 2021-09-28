@@ -1,4 +1,3 @@
-context("repair")
 
 test_that("normalization", {
 
@@ -13,7 +12,7 @@ test_that("normalization", {
 
   expect_equal(sort(before_fields), sort(after_fields))
   expect_lt(match("Imports", after_fields), match("Imports", before_fields))
-  expect_gt(match("LazyData", after_fields), match("LazyData", before_fields))
+  expect_gt(match("Encoding", after_fields), match("Encoding", before_fields))
   expect_equal(after_data[["Imports"]], "\n    bar,\n    foo,\n    foobar")
 
 })
@@ -47,7 +46,7 @@ test_that("reordering", {
 
   expect_equal(sort(before_fields), sort(after_fields))
   expect_lt(match("Imports", after_fields), match("Imports", before_fields))
-  expect_gt(match("LazyData", after_fields), match("LazyData", before_fields))
+  expect_gt(match("Encoding", after_fields), match("Encoding", before_fields))
   expect_identical(before_data[after_fields], after_data)
 
 })

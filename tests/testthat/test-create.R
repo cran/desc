@@ -1,6 +1,4 @@
 
-context("Constructors")
-
 test_that("can create new object", {
   desc <- description$new("!new")
 
@@ -11,7 +9,7 @@ test_that("can create new object", {
   expect_true(!is.na(desc$get("Maintainer")))
   expect_true(!is.na(desc$get("Description")))
   expect_true(!is.na(desc$get("License")))
-  expect_true(!is.na(desc$get("LazyData")))
+  expect_true(is.na(desc$get("LazyData")))
   expect_true(!is.na(desc$get("URL")))
   expect_true(!is.na(desc$get("BugReports")))
 })

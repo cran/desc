@@ -1,6 +1,4 @@
 
-context("Encoding")
-
 test_that("Encoding field is observed", {
 
   expect_silent(
@@ -104,4 +102,22 @@ test_that("encoding is converted to specified when writing", {
   exp <- "Maintainer: G\xE1bor Cs\xE1rdi <author@here.net>"
   Encoding(exp) <- "latin1"
   expect_equal(charToRaw(maint), charToRaw(exp))
+})
+
+test_that("no encoding roundtrip when writing", {
+
+  desc <- description$new(
+    text = paste0(
+      "Package: foo\n",
+      "Name: \u0144\u0119\u0118\u0142\u0141\u017A\u017C\n",
+      "Encoding: UTF-8\n"
+    )
+  )
+
+  tmp <- tempfile()
+  on.exit(unlink(tmp), add = TRUE)
+  desc$write(tmp)
+  desc2 <- desc(tmp)
+  expect_equal(desc$get("Name"), desc2$get("Name"))
+  expect_equal(Encoding(desc2$get("Name")), "UTF-8")
 })

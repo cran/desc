@@ -1,6 +1,4 @@
 
-context("Queries")
-
 test_that("get works", {
   desc <- description$new("D1")
 
@@ -24,6 +22,10 @@ test_that("get_field works", {
   expect_identical(desc$get_field("Author"), "G\u00e1bor Cs\u00e1rdi")
   expect_identical(desc$get_field("Imports"), "R6")
   expect_identical(desc$get_field("Imports", trim_ws = FALSE), "\n    R6")
+  expect_match(desc$get_field("Description", trim_ws = FALSE), "\\s+")
+  expect_match(desc$get_field("Description", trim_ws = TRUE, squish_ws = FALSE), "\\s+")
+  expect_false(grepl("\n", desc$get_field("Description", trim_ws = TRUE)))
+  expect_false(grepl("\n", desc$get_field("Description", trim_ws = FALSE, squish_ws = TRUE)))
 
   expect_error(
     desc$get_field("package"),
@@ -96,4 +98,28 @@ test_that("set errors on invalid input", {
     desc$set("foobar"),
     "needs two unnamed args"
   )
+})
+
+test_that("get_list, set_list", {
+  desc <- description$new("D1")
+  desc$set(foo = "  this, is   a, \n   list")
+  expect_equal(
+    desc$get_list("foo"),
+    c("this", "is a", "list")
+  )
+  expect_equal(
+    desc$get_list("foo", trim_ws = FALSE, squish_ws = TRUE),
+    c(" this", " is a", " list")
+  )
+  expect_equal(
+    desc$get_list("foo", trim_ws = TRUE, squish_ws = FALSE),
+    c("this", "is   a", "list")
+  )
+  expect_equal(
+    desc$get_list("foo", trim_ws = FALSE, squish_ws = FALSE),
+    c("  this", " is   a", " \n   list")
+  )
+
+  desc$set_list("key", c("this", "that"))
+  expect_equal(desc$get_list("key"), c("this", "that"))
 })

@@ -1,6 +1,4 @@
 
-context("DCF reader")
-
 test_that("DCF reader works", {
   desc <- description$new("D1")
 
@@ -28,6 +26,13 @@ test_that("duplicate fields, #43", {
   expect_error(
     description$new("D5"),
     "Duplicate DESCRIPTION fields.*Remotes"
+  )
+})
+
+test_that("empty lines error", {
+  expect_error(
+    description$new("D12"),
+    "Empty lines found in DESCRIPTION file"
   )
 })
 

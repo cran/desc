@@ -1,6 +1,4 @@
 
-context("Authors")
-
 test_that("we can get the authors", {
   desc <- description$new("D2")
 
@@ -232,13 +230,13 @@ test_that("we can change the maintainer", {
 })
 
 test_that("add_me works", {
-  desc <- description$new("D2")
-  with_mock(
-    `desc:::check_for_package` = function(...) TRUE,
-    `whoami::fullname` = function() "Bugs Bunny",
-    `whoami::email_address` = function() "bugs.bunny@acme.com",
-    desc$add_me(comment = "Yikes!")
+  withr::local_envvar(
+    FULLNAME = "Bugs Bunny",
+    EMAIL = "bugs.bunny@acme.com"
   )
+
+  desc <- description$new("D2")
+  desc$add_me(comment = "Yikes!")
 
   expect_identical(
     format(desc$get_authors()[5]),
@@ -252,21 +250,15 @@ test_that("add_me can use ORCID_ID", {
                      sep = ".")
 
   skip_if_not(R_version >= "3.5.0")
-  desc <- description$new("D2")
-  with_mock(
-    `desc:::check_for_package` = function(...) TRUE,
-    `whoami::fullname` = function() "Bugs Bunny",
-    `whoami::email_address` = function() "bugs.bunny@acme.com",
-    Sys.getenv = function(x){
-      if (x == "ORCID_ID") {
-        "0000-0002-0775-162X"
-      } else {
-        Sys.getenv(x)
-      }
-    },
-    desc$add_me()
 
+  withr::local_envvar(
+    FULLNAME = "Bugs Bunny",
+    EMAIL = "bugs.bunny@acme.com",
+    ORCID_ID = "0000-0002-0775-162X"
   )
+
+  desc <- description$new("D2")
+  desc$add_me()
 
   expect_identical(
     format(desc$get_authors()[5]),
@@ -278,12 +270,12 @@ test_that("add_me can use ORCID_ID", {
 })
 
 test_that("add_author_gh works", {
-  desc <- description$new("D2")
-  with_mock(
-    `gh::gh` = function(...) list(name = "Jeroen Ooms",
-                                  email = "notanemail"),
-    desc$add_author_gh(username = "jeroen")
+  withr::local_options(
+    desc.gh_user = list(name = "Jeroen Ooms", email = "notanemail")
   )
+
+  desc <- description$new("D2")
+  desc$add_author_gh(username = "jeroen")
 
   expect_identical(
     format(desc$get_authors()[5]),
@@ -387,13 +379,13 @@ test_that("add_author if there is no Authors@R field", {
 })
 
 test_that("add myself if there is no Authors@R field", {
-  D1 <- description$new("D1")
-  with_mock(
-    `desc:::check_for_package` = function(...) TRUE,
-    `whoami::fullname` = function() "Bugs Bunny",
-    `whoami::email_address` = function() "bugs.bunny@acme.com",
-    D1$add_me(comment = "Yikes!")
+  withr::local_envvar(
+    FULLNAME = "Bugs Bunny",
+    EMAIL = "bugs.bunny@acme.com"
   )
+
+  D1 <- description$new("D1")
+  D1$add_me(comment = "Yikes!")
 
   expect_identical(
     format(D1$get_authors()[1]),
@@ -449,4 +441,32 @@ test_that("long comments are deparsed properly", {
     desc$get_authors()[[2]]$comment,
     authors[[2]]$comment
   )
+})
+
+test_that("deparse_authors_at_r", {
+  # old R deparses named vectors differently
+  if (getRversion() < "3.5") skip("Needs newer R")
+
+  ppl <- c(
+    person("Hadley", "Wickham", , "hadley@rstudio.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0003-4757-117X")
+           ),
+    person("Jennifer", "Bryan", , "jenny@rstudio.com", role = "aut",
+           comment = c(ORCID = "0000-0002-6983-2759")
+           ),
+    person("RStudio", role = c("cph", "fnd"))
+  )
+
+  tmp <- tempfile()
+  on.exit(unlink(tmp), add = TRUE)
+
+  desc <- description$new(text = "")
+
+  desc$set_authors(ppl[[1]])
+  desc$write(tmp)
+  expect_snapshot(readLines(tmp))
+
+  desc$set_authors(ppl)
+  desc$write(tmp)
+  expect_snapshot(readLines(tmp))
 })

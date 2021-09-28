@@ -102,7 +102,7 @@ desc <- function(cmd = NULL, file = NULL, text = NULL, package = NULL) {
 #'
 #' The complete API reference:
 #' \preformatted{  description$get(keys)
-#'   description$get_field(key, default, trim_ws = TRUE)
+#'   description$get_field(key, default, trim_ws = TRUE, squish_ws = trim_ws)
 #'   description$set(...)
 #'   description$fields()
 #'   description$has_fields(keys)
@@ -111,8 +111,10 @@ desc <- function(cmd = NULL, file = NULL, text = NULL, package = NULL) {
 #'   \item{key:}{A character string (length one), the key to query.}
 #'   \item{default:}{If specified and \code{key} is missing, this value
 #'     is returned. If not specified, an error is thrown.}
-#'   \item{trim_ws:}{Whether to trim leading  and trailing whitespace
+#'   \item{trim_ws:}{Whether to trim leading and trailing whitespace
 #'     from the returned value.}
+#'   \item{squish_ws:}{Whether to reduce repeated whitespace in the
+#'     returned value.}
 #'   \item{keys:}{A character vector of keys to query, check or delete.}
 #'   \item{...:}{This must be either two unnamed arguments, the key and
 #'     and the value to set; or an arbitrary number of named arguments,
@@ -480,14 +482,21 @@ description <- R6Class("description",
       idesc_get(self, private, keys),
 
     get_field = function(key, default = stop("Field '", key, "' not found"),
-                         trim_ws = TRUE)
-      idesc_get_field(self, private, key, default, trim_ws),
+                         trim_ws = TRUE, squish_ws = trim_ws)
+      idesc_get_field(self, private, key, default, trim_ws, squish_ws),
 
     get_or_fail = function(keys)
       idesc_get_or_fail(self, private, keys),
 
+    get_list = function(key, default = stop("Field '", key, "' not found"),
+                        sep = ",", trim_ws = TRUE, squish_ws = trim_ws)
+      idesc_get_list(self, private, key, default, sep, trim_ws, squish_ws),
+
     set = function(...)
       idesc_set(self, private, ...),
+
+    set_list = function(key, list_value, sep = ", ")
+      idesc_set_list(self, private, key, list_value, sep),
 
     del = function(keys)
       idesc_del(self, private, keys),
@@ -721,7 +730,6 @@ Authors@R:
 Maintainer: {{ Maintainer }}
 Description: {{ Description }}
 License: {{ License }}
-LazyData: true
 URL: {{ URL }}
 BugReports: {{ BugReports }}
 Encoding: UTF-8
@@ -786,10 +794,9 @@ idesc_write <- function(self, private, file) {
   if ("Encoding" %in% colnames(mat)) {
     encoding <- mat[, "Encoding"]
     mat[] <- iconv(mat[], from = "UTF-8", to = encoding)
-    Encoding(mat) <- encoding
-  } else {
-    encoding <- ""
   }
+  # This is to avoid re-encoding
+  Encoding(mat) <- "unknown"
 
   ## Need to write to a temp file first, to preserve absense of trailing ws
   tmp <- tempfile()
@@ -802,7 +809,7 @@ idesc_write <- function(self, private, file) {
   postprocess_trailing_ws(tmp, names(private$notws))
   if (file.exists(file) && is_dir(file)) file <- find_description(file)
 
-  ofile <- file(file, encoding = encoding, open = "w+")
+  ofile <- file(file, raw = TRUE, open = "wb+")
   on.exit(close(ofile), add = TRUE)
   writeLines(readLines(tmp), ofile)
 
@@ -835,11 +842,14 @@ idesc_get <- function(self, private, keys) {
   res
 }
 
-idesc_get_field <- function(self, private, key, default, trim_ws) {
+idesc_get_field <- function(self, private, key, default, trim_ws, squish_ws) {
   stopifnot(is_string(key))
   stopifnot(is_flag(trim_ws))
   val <- private$data[[key]]$value
-  if (trim_ws && !is.null(val)) val <- str_trim(val)
+  if (!is.null(val)) {
+    if (trim_ws) val <- str_trim(val)
+    if (squish_ws) val <- str_squish(val)
+  }
   val %||% default
 }
 
@@ -857,6 +867,15 @@ idesc_get_or_fail <- function(self, private, keys) {
     stop(msg, call. = FALSE)
   }
   res
+}
+
+idesc_get_list <- function(self, private, key, default, sep, trim_ws, squish_ws) {
+  stopifnot(is_string(key), is_flag(trim_ws), is_flag(squish_ws))
+  val <- private$data[[key]]$value %||% default
+  val <- strsplit(val, sep, fixed = TRUE)[[1]]
+  if (trim_ws) val <- str_trim(val)
+  if (squish_ws) val <- str_squish(val)
+  val
 }
 
 ## ... are either
@@ -887,6 +906,11 @@ idesc_set <- function(self, private, ...) {
   invisible(self)
 }
 
+idesc_set_list <- function(self, private, key, list_value, sep) {
+  stopifnot(is_string(key), is.character(list_value))
+  value <- paste(list_value, collapse = sep)
+  idesc_set(self, private, key, value)
+}
 
 idesc_del <- function(self, private, keys) {
   stopifnot(is.character(keys), has_no_na(keys))
