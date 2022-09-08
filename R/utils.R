@@ -2,7 +2,7 @@
 `%||%` <- function(l, r) if (is.null(l)) r else l
 
 str_trim <- function(x) {
-  sub("^\\s+", "", sub("\\s+$", "", x))
+  sub("^\\s+", "", sub("\\s+$", "", x, useBytes = TRUE), useBytes = TRUE)
 }
 
 str_squish <- function(x) {
@@ -190,4 +190,12 @@ desc_message <- function(...) {
   class(msg) <- c("descMessage", class(msg))
   message(msg)
 
+}
+
+write_dcf <- function(...) {
+  if (getRversion() >= "3.5.0") {
+    write.dcf(..., useBytes = TRUE)
+  } else {
+    write.dcf(...)
+  }
 }
