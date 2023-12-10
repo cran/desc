@@ -11,8 +11,8 @@ Tools to read, write, create, and manipulate DESCRIPTION files. It is intended f
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/r-lib/desc#readme}
-  \item \url{https://r-lib.github.io/desc/}
+  \item \url{https://desc.r-lib.org/}
+  \item \url{https://github.com/r-lib/desc}
   \item Report bugs at \url{https://github.com/r-lib/desc/issues}
 }
 
@@ -29,7 +29,7 @@ Authors:
 Other contributors:
 \itemize{
   \item Maëlle Salmon (\href{https://orcid.org/0000-0002-2815-0399}{ORCID}) [contributor]
-  \item RStudio [copyright holder, funder]
+  \item Posit Software, PBC [copyright holder, funder]
 }
 
 }
